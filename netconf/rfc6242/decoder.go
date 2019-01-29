@@ -49,6 +49,7 @@ type Decoder struct {
 	chunkDataLeft uint64 // state
 	bufSize       int    // config
 	anySeen       bool
+	seenEOM       bool
 	eofOK         bool
 }
 
@@ -125,7 +126,7 @@ func (d *Decoder) setFramer(f FramerFn) {
 	// - xml decoder delivers decoded hello to application code
 	// - application code inspects hello, enables chunked framing and calls the xml decoder
 	// - transport reader delivers 'missing' end of message
-	if !d.anySeen {
+	if !d.seenEOM {
 		d.pendingFramer = f
 	} else {
 		d.framer = f

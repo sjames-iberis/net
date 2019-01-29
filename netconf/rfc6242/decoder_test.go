@@ -81,7 +81,7 @@ func TestEOMDecoding(t *testing.T) {
 
 			buffer := make([]byte, tt.buflen)
 			for i, resp := range tt.responses {
-				transport.Write(resp.inputs)
+				transport.Write(resp.inputs, i == len(tt.responses) - 1)
 
 				count, err := d.Read(buffer)
 				token := string(buffer[:count])
@@ -125,75 +125,6 @@ func TestFramerTransition(t *testing.T) {
 				{nil, "", "EOF", false},
 			},
 		},
-		{"SplitChunkMetadataLength", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\n#6", "\n" + "<rpc/>" + "\n#", "#\n"}, "<rpc/>", "", false},  // Single write
-				{nil, "", "EOF", false},
-			},
-		},
-		{"SplitEndOfChunks", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\n#6", "\n" + "<rpc/>" + "\n##", "\n"}, "<rpc/>", "", false},
-			},
-		},
-		{"InvalidChunkHeader", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\n#A"}, "", "", false},  // Single write
-				{nil, "", "invalid chunk header", false},
-			},
-		},
-		{"ChunkHeaderNotStartingWithNewline1", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"X"}, "", "", false},  // Single write
-				{nil, "", "invalid chunk header", false},
-			},
-		},
-		{"ChunkHeaderNotStartingWithNewline2", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"12345678"}, "", "", false},  // Single write
-				{nil, "", "invalid chunk header", false},
-			},
-		},
-		{"ChunkHeaderNotStartingWithNewline3", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"123456789"}, "", "", false},  // Single write
-				{nil, "", "invalid chunk header", false},
-			},
-		},
-		{"ChunkHeaderNotStartingWithNewlineHash", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\nX"}, "", "", false},  // Single write
-				{nil, "", "invalid chunk header", false},
-			},
-		},
-		{"InvalidChunkSize1", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\n#4294967297", "\n" + "<rpc/>" + "\n#", "#\n"}, "", "", false},  // Single write
-				{nil, "", "chunk size larger than maximum", false},
-			},
-		},
-		{"InvalidChunkSize2", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\n#42949672978"}, "", "", false},
-				{nil, "", "no valid chunk-size detected", false},
-			},
-		},
-		{"InvalidChunkSize3", 100,
-			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
-				{[]string{"\n#4294967297000\n" + "<rpc/>" + "\n#", "#\n"}, "", "", false},  // Single write
-				{nil, "", "token too long", false},
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -206,7 +137,7 @@ func TestFramerTransition(t *testing.T) {
 			buffer := make([]byte, tt.buflen)
 			for i, resp := range tt.responses {
 
-				transport.Write(resp.inputs)
+				transport.Write(resp.inputs, i == len(tt.responses) - 1)
 
 				count, err := d.Read(buffer)
 				token := string(buffer[:count])
@@ -214,6 +145,115 @@ func TestFramerTransition(t *testing.T) {
 					t.Errorf("Decoder %s[%d]: buffer mismatch wanted >%s< got >%s<", tt.name, i, resp.buffer, token)
 				} else if err == nil && resp.err != "" ||
 					      err != nil && !strings.Contains(err.Error(), resp.err) {
+					t.Errorf("Decoder %s[%d]: error mismatch wanted %s got %s", tt.name, i, resp.err, err)
+				}
+				if resp.setChunked {
+					SetChunkedFraming(d)
+				}
+			}
+		})
+	}
+}
+
+func TestChunkedFramer(t *testing.T) {
+
+	type decresp struct {
+		inputs      []string
+		buffer     string
+		err        string
+		setChunked bool
+	}
+
+	tests := []struct {
+		name   string
+		buflen int
+
+		responses []decresp
+	}{
+		{"SplitChunkMetadataLength", 100,
+			[]decresp{
+				{[]string{"\n#6", "\n" + "<rpc/>" + "\n#", "#\n"}, "<rpc/>", "", false},
+				{nil, "", "EOF", false},
+			},
+		},
+		{"SplitEndOfChunks", 100,
+			[]decresp{
+				{[]string{"\n#6", "\n" + "<rpc/>" + "\n##", "\n"}, "<rpc/>", "", false},
+			},
+		},
+		{"EndOfChunksWithoutChunks", 100,
+			[]decresp{
+				{[]string{"\n##\n"}, "", "", false},
+			},
+		},
+		{"InvalidChunkHeader", 100,
+			[]decresp{
+				{[]string{"\n#A"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewline1", 100,
+			[]decresp{
+				{[]string{"X"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewline2", 100,
+			[]decresp{
+				{[]string{"12345678"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewline3", 100,
+			[]decresp{
+				{[]string{"123456789"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewlineHash", 100,
+			[]decresp{
+				{[]string{"\nX"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"InvalidChunkSize1", 100,
+			[]decresp{
+				{[]string{"\n#4294967297", "\n" + "<rpc/>" + "\n#", "#\n"}, "", "", false},  // Single write
+				{nil, "", "chunk size larger than maximum", false},
+			},
+		},
+		{"InvalidChunkSize2", 100,
+			[]decresp{
+				{[]string{"\n#42949672978"}, "", "", false},
+				{nil, "", "no valid chunk-size detected", false},
+			},
+		},
+		{"InvalidChunkSize3", 100,
+			[]decresp{
+				{[]string{"\n#4294967297000\n" + "<rpc/>" + "\n#", "#\n"}, "", "", false},  // Single write
+				{nil, "", "token too long", false},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			transport := newTransport()
+
+			d := NewDecoder(transport.r, WithFramer(decoderChunked), WithScannerBufferSize(0))
+
+			buffer := make([]byte, tt.buflen)
+			for i, resp := range tt.responses {
+
+				transport.Write(resp.inputs, i == len(tt.responses) - 1)
+
+				count, err := d.Read(buffer)
+				token := string(buffer[:count])
+				if resp.buffer != token {
+					t.Errorf("Decoder %s[%d]: buffer mismatch wanted >%s< got >%s<", tt.name, i, resp.buffer, token)
+				} else if err == nil && resp.err != "" ||
+					err != nil && !strings.Contains(err.Error(), resp.err) {
 					t.Errorf("Decoder %s[%d]: error mismatch wanted %s got %s", tt.name, i, resp.err, err)
 				}
 				if resp.setChunked {
@@ -242,7 +282,7 @@ type transport struct {
 	ch chan string
 }
 
-func (t *transport) Write(inputs []string) {
+func (t *transport) Write(inputs []string, shouldClose bool) {
 
 	if inputs == nil {
 		close(t.ch)
@@ -250,29 +290,9 @@ func (t *transport) Write(inputs []string) {
 		for _, s := range inputs {
 			t.ch <- s
 		}
+		if shouldClose {
+			close(t.ch)
+		}
 	}
 }
 
-//func (t *transport) Close() {
-//	go func() { t.w.Close() }()
-//}
-
-func reader(resps []string) *dummyReader {
-	return &dummyReader{responses: resps}
-}
-
-type dummyReader struct {
-	responses []string
-	idx       int
-}
-
-func (dr *dummyReader) Read(p []byte) (int, error) {
-
-	if dr.idx >= len(dr.responses) {
-		return 0, io.EOF
-	}
-	src := dr.responses[dr.idx]
-	l := copy(p, src)
-	dr.idx++
-	return l, nil
-}
