@@ -213,16 +213,13 @@ func detectChunkHeader(b []byte) (action chunkHeaderAction, advance int, chunksi
 			lenChunksize := bytes.IndexByte(bChunksize, '\n')
 			switch {
 			case lenChunksize == -1:
-				if len(bChunksize) <= rfc6242maximumAllowedChunkSize+1 {
+				if len(bChunksize) <= rfc6242maximumAllowedChunkSizeLength {
 					// we might not have seen the whole chunk-size value
 					action = chActionMoreData
 				} else {
 					// we should have seen a chunk-size in bChunksize, but did not
 					err = errors.WithStack(ErrChunkSizeInvalid)
 				}
-			case lenChunksize == 0:
-				// not a valid chunk-size token
-				err = errors.WithStack(ErrChunkSizeInvalid)
 			case lenChunksize > rfc6242maximumAllowedChunkSizeLength:
 				err = errors.WithStack(ErrChunkSizeTokenTooLong)
 			default:

@@ -2,6 +2,7 @@ package rfc6242
 
 import (
 	"io"
+	"strings"
 	"testing"
 )
 
@@ -100,7 +101,7 @@ func TestFramerTransition(t *testing.T) {
 	type decresp struct {
 		inputs      []string
 		buffer     string
-		err        error
+		err        string
 		setChunked bool
 	}
 
@@ -112,23 +113,85 @@ func TestFramerTransition(t *testing.T) {
 	}{
 		{"SimpleSwitch", 100,
 			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", nil, true},
-				{[]string{"\n#6\n", "<rpc/>", "\n##\n"},"<rpc/>", nil, false}, // Multiple writes
-				{nil, "", io.EOF, false},
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#6\n", "<rpc/>", "\n##\n"},"<rpc/>", "", false}, // Multiple writes
+				{nil, "", "EOF", false},
 			},
 		},
 		{"SwitchWithDanglingEOM", 100,
 			[]decresp{
-				{[]string{"<hello/>"}, "<hello/>", nil, true},
-				{[]string{EOM + "\n#6\n" + "<rpc/>" + "\n##\n"}, "<rpc/>", nil, false},  // Single write
-				{nil, "", io.EOF, false},
+				{[]string{"<hello/>"}, "<hello/>", "", true},
+				{[]string{EOM + "\n#6\n" + "<rpc/>" + "\n##\n"}, "<rpc/>", "", false},  // Single write
+				{nil, "", "EOF", false},
 			},
 		},
-		{"SplitChunkMetadata", 100,
+		{"SplitChunkMetadataLength", 100,
 			[]decresp{
-				{[]string{"<hello/>" + EOM}, "<hello/>", nil, true},
-				{[]string{"\n#6", "\n" + "<rpc/>" + "\n#", "#\n"}, "<rpc/>", nil, false},  // Single write
-				{nil, "", io.EOF, false},
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#6", "\n" + "<rpc/>" + "\n#", "#\n"}, "<rpc/>", "", false},  // Single write
+				{nil, "", "EOF", false},
+			},
+		},
+		{"SplitEndOfChunks", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#6", "\n" + "<rpc/>" + "\n##", "\n"}, "<rpc/>", "", false},
+			},
+		},
+		{"InvalidChunkHeader", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#A"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewline1", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"X"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewline2", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"12345678"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewline3", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"123456789"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"ChunkHeaderNotStartingWithNewlineHash", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\nX"}, "", "", false},  // Single write
+				{nil, "", "invalid chunk header", false},
+			},
+		},
+		{"InvalidChunkSize1", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#4294967297", "\n" + "<rpc/>" + "\n#", "#\n"}, "", "", false},  // Single write
+				{nil, "", "chunk size larger than maximum", false},
+			},
+		},
+		{"InvalidChunkSize2", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#42949672978"}, "", "", false},
+				{nil, "", "no valid chunk-size detected", false},
+			},
+		},
+		{"InvalidChunkSize3", 100,
+			[]decresp{
+				{[]string{"<hello/>" + EOM}, "<hello/>", "", true},
+				{[]string{"\n#4294967297000\n" + "<rpc/>" + "\n#", "#\n"}, "", "", false},  // Single write
+				{nil, "", "token too long", false},
 			},
 		},
 	}
@@ -149,7 +212,8 @@ func TestFramerTransition(t *testing.T) {
 				token := string(buffer[:count])
 				if resp.buffer != token {
 					t.Errorf("Decoder %s[%d]: buffer mismatch wanted >%s< got >%s<", tt.name, i, resp.buffer, token)
-				} else if resp.err != err {
+				} else if err == nil && resp.err != "" ||
+					      err != nil && !strings.Contains(err.Error(), resp.err) {
 					t.Errorf("Decoder %s[%d]: error mismatch wanted %s got %s", tt.name, i, resp.err, err)
 				}
 				if resp.setChunked {
