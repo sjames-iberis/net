@@ -6,9 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/damianoneill/net/client"
-	"github.com/damianoneill/net/common"
-	"github.com/damianoneill/net/testserver"
+	"github.com/damianoneill/net/netconf/client"
+	"github.com/damianoneill/net/netconf/common"
+	"github.com/damianoneill/net/netconf/testserver"
 
 	assert "github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"

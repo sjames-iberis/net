@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/damianoneill/net/testserver"
+	"github.com/damianoneill/net/netconf/testserver"
 	assert "github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )

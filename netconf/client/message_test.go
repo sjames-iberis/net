@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/damianoneill/net/common"
-	"github.com/damianoneill/net/common/codec"
-	"github.com/damianoneill/net/testserver"
+	"github.com/damianoneill/net/netconf/common"
+	"github.com/damianoneill/net/netconf/common/codec"
+	"github.com/damianoneill/net/netconf/testserver"
 
 	assert "github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"

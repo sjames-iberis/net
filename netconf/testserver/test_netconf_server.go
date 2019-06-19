@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"sync/atomic"
 
-	"github.com/damianoneill/net/common"
+	"github.com/damianoneill/net/netconf/common"
 
 	assert "github.com/stretchr/testify/require"
 )
