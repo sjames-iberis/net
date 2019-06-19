@@ -23,7 +23,7 @@ type tImpl struct {
 	writeCloser io.WriteCloser
 	sshSession  *ssh.Session
 	sshClient   *ssh.Client
-	trace       *ClientTrace
+	trace       *Trace
 	target      string
 }
 
@@ -130,7 +130,7 @@ func (t *tImpl) Close() (err error) {
 
 type traceReader struct {
 	r     io.Reader
-	trace *ClientTrace
+	trace *Trace
 }
 
 func (t *tImpl) injectTraceReader() {
@@ -151,7 +151,7 @@ func (tr *traceReader) Read(p []byte) (c int, err error) {
 
 type traceWriter struct {
 	w     io.WriteCloser
-	trace *ClientTrace
+	trace *Trace
 }
 
 func (t *tImpl) injectTraceWriter() {

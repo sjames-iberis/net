@@ -35,7 +35,7 @@ func TestSessionSetupFailure(t *testing.T) {
 	}
 
 	ctx := WithClientTrace(context.Background(), DefaultLoggingHooks)
-	s, err := NewRPCSessionWithConfig(ctx, sshConfig, fmt.Sprintf("localhost:%d", ts.Port()), &ClientConfig{setupTimeoutSecs: 1})
+	s, err := NewRPCSessionWithConfig(ctx, sshConfig, fmt.Sprintf("localhost:%d", ts.Port()), &Config{setupTimeoutSecs: 1})
 	assert.Error(t, err, "Expecting new session to fail - no hello from server")
 	assert.Nil(t, s, "Session should be nil")
 }
@@ -50,7 +50,7 @@ func TestSessionSetupSuccess(t *testing.T) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	s, err := NewRPCSessionWithConfig(context.Background(), sshConfig, fmt.Sprintf("localhost:%d", ts.Port()), &ClientConfig{setupTimeoutSecs: 1})
+	s, err := NewRPCSessionWithConfig(context.Background(), sshConfig, fmt.Sprintf("localhost:%d", ts.Port()), &Config{setupTimeoutSecs: 1})
 	assert.NoError(t, err, "Expecting new session to succeed")
 	assert.NotNil(t, s, "Session should not be nil")
 }
@@ -72,7 +72,7 @@ func TestSessionWithHooks(t *testing.T) {
 	assert.Contains(t, logged, "ReadDone", "ReadDone should be logged")
 }
 
-func exerciseSession(t *testing.T, hooks *ClientTrace) string {
+func exerciseSession(t *testing.T, hooks *Trace) string {
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
@@ -129,7 +129,7 @@ func exerciseSession(t *testing.T, hooks *ClientTrace) string {
 
 // func TestRealNewSession(t *testing.T) {
 
-// 	sshConfig := &ssh.ClientConfig{
+// 	sshConfig := &ssh.Config{
 // 		User:            "XXxxxx",
 // 		Auth:            []ssh.AuthMethod{ssh.Password("XXxxxxxxx")},
 // 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),

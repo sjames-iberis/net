@@ -80,7 +80,7 @@ func TestTrace(t *testing.T) {
 	}
 
 	var traces []string
-	trace := &ClientTrace{
+	trace := &Trace{
 		ConnectStart: func(clientConfig *ssh.ClientConfig, target string) {
 			traces = append(traces, fmt.Sprintf("ConnectStart %s", target))
 		},

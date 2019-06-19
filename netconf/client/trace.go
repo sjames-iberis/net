@@ -14,10 +14,10 @@ import (
 // unique type to prevent assignment.
 type clientEventContextKey struct{}
 
-// ContextClientTrace returns the ClientTrace associated with the
+// ContextClientTrace returns the Trace associated with the
 // provided context. If none, it returns nil.
-func ContextClientTrace(ctx context.Context) *ClientTrace {
-	trace, _ := ctx.Value(clientEventContextKey{}).(*ClientTrace)
+func ContextClientTrace(ctx context.Context) *Trace {
+	trace, _ := ctx.Value(clientEventContextKey{}).(*Trace)
 	if trace == nil {
 		trace = NoOpLoggingHooks
 	} else {
@@ -29,7 +29,7 @@ func ContextClientTrace(ctx context.Context) *ClientTrace {
 // WithClientTrace returns a new context based on the provided parent
 // ctx. Netconf client requests made with the returned context will use
 // the provided trace hooks
-func WithClientTrace(ctx context.Context, trace *ClientTrace) context.Context {
+func WithClientTrace(ctx context.Context, trace *Trace) context.Context {
 
 	// old := ContextClientTrace(ctx)
 	// trace.compose(old)
@@ -38,8 +38,8 @@ func WithClientTrace(ctx context.Context, trace *ClientTrace) context.Context {
 	return ctx
 }
 
-// ClientTrace defines a structure for handling trace events
-type ClientTrace struct {
+// Trace defines a structure for handling trace events
+type Trace struct {
 	// ConnectStart is called when starting to connect to a remote server.
 	ConnectStart func(clientConfig *ssh.ClientConfig, target string)
 
@@ -83,14 +83,14 @@ type ClientTrace struct {
 }
 
 // DefaultLoggingHooks provides a default logging hook to report errors.
-var DefaultLoggingHooks = &ClientTrace{
+var DefaultLoggingHooks = &Trace{
 	Error: func(context, target string, err error) {
 		log.Printf("Error context:%s target:%s err:%v\n", context, target, err)
 	},
 }
 
 // DiagnosticLoggingHooks provides a set of default diagnostic hooks
-var DiagnosticLoggingHooks = &ClientTrace{
+var DiagnosticLoggingHooks = &Trace{
 	ConnectStart: func(clientConfig *ssh.ClientConfig, target string) {
 		log.Printf("ConnectStart target:%s config:%v\n", target, clientConfig)
 	},
@@ -134,7 +134,7 @@ var DiagnosticLoggingHooks = &ClientTrace{
 }
 
 // NoOpLoggingHooks provides set of hooks that do nothing.
-var NoOpLoggingHooks = &ClientTrace{
+var NoOpLoggingHooks = &Trace{
 	ConnectStart:     func(clientConfig *ssh.ClientConfig, target string) {},
 	ConnectDone:      func(clientConfig *ssh.ClientConfig, target string, err error, d time.Duration) {},
 	ConnectionClosed: func(target string, err error) {},

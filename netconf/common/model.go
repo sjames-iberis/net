@@ -69,6 +69,7 @@ var DefaultCapabilities = []string{
 	CapBase11,
 }
 
+// Define xml names for different netconf messages.
 var (
 	NameHello        = xml.Name{Space: NetconfNS, Local: "hello"}
 	NameRPC          = xml.Name{Space: NetconfNS, Local: "rpc"}
@@ -76,12 +77,10 @@ var (
 	NameNotification = xml.Name{Space: NetconfNotifyNS, Local: "notification"}
 )
 
+// Define netconf URNs.
 const (
 	NetconfNS       = "urn:ietf:params:xml:ns:netconf:base:1.0"
 	NetconfNotifyNS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
-
-	// CapBase10 defines capability value identifying 1.0 support
-	CapBase10 = "urn:ietf:params:netconf:base:1.0"
-	// CapBase11 defines capability value identifying 1.1 support
-	CapBase11 = "urn:ietf:params:netconf:base:1.1"
+	CapBase10       = "urn:ietf:params:netconf:base:1.0"
+	CapBase11       = "urn:ietf:params:netconf:base:1.1"
 )

@@ -278,7 +278,7 @@ func newNCClientSession(t assert.TestingT, ts *testserver.TestNCServer) Session 
 
 //func TestRealNewSession(t *testing.T) {
 //
-//	sshConfig := &ssh.ClientConfig{
+//	sshConfig := &ssh.Config{
 //		User:            "regress",
 //		Auth:            []ssh.AuthMethod{ssh.Password("MaRtInI")},
 //		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -310,7 +310,7 @@ func newNCClientSession(t assert.TestingT, ts *testserver.TestNCServer) Session 
 
 // func TestRealSubscription(t *testing.T) {
 
-// 	sshConfig := &ssh.ClientConfig{
+// 	sshConfig := &ssh.Config{
 // 		User:            "XXxxxx",
 // 		Auth:            []ssh.AuthMethod{ssh.Password("XXxxxxxxxx")},
 // 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),

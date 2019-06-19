@@ -49,11 +49,11 @@ type Session interface {
 }
 
 type sesImpl struct {
-	cfg   *ClientConfig
+	cfg   *Config
 	t     Transport
 	dec   *codec.Decoder
 	enc   *codec.Encoder
-	trace *ClientTrace
+	trace *Trace
 
 	pool []chan *common.RPCReply
 
@@ -72,7 +72,7 @@ type sesImpl struct {
 }
 
 // NewSession creates a new Netconf session, using the supplied Transport.
-func NewSession(ctx context.Context, t Transport, cfg *ClientConfig) (Session, error) {
+func NewSession(ctx context.Context, t Transport, cfg *Config) (Session, error) {
 
 	si := &sesImpl{
 		cfg:    cfg,
