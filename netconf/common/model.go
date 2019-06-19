@@ -1,4 +1,4 @@
-package netconf
+package common
 
 import (
 	"encoding/xml"
@@ -14,7 +14,7 @@ type Request string
 type HelloMessage struct {
 	XMLName      xml.Name `xml:"urn:ietf:params:xml:ns:netconf:base:1.0 hello"`
 	Capabilities []string `xml:"capabilities>capability"`
-	SessionID    uint64      `xml:"session-id,omitempty"`
+	SessionID    uint64   `xml:"session-id,omitempty"`
 }
 
 // RPCMessage defines the an rpc request message
@@ -62,3 +62,26 @@ type NotificationMessage struct {
 	EventTime string       `xml:"eventTime"`
 	Event     Notification `xml:",any"`
 }
+
+// DefaultCapabilities sets the default capabilities of the client library
+var DefaultCapabilities = []string{
+	CapBase10,
+	CapBase11,
+}
+
+var (
+	NameHello        = xml.Name{Space: NetconfNS, Local: "hello"}
+	NameRPC          = xml.Name{Space: NetconfNS, Local: "rpc"}
+	NameRPCReply     = xml.Name{Space: NetconfNS, Local: "rpc-reply"}
+	NameNotification = xml.Name{Space: NetconfNotifyNS, Local: "notification"}
+)
+
+const (
+	NetconfNS       = "urn:ietf:params:xml:ns:netconf:base:1.0"
+	NetconfNotifyNS = "urn:ietf:params:xml:ns:netconf:notification:1.0"
+
+	// CapBase10 defines capability value identifying 1.0 support
+	CapBase10 = "urn:ietf:params:netconf:base:1.0"
+	// CapBase11 defines capability value identifying 1.1 support
+	CapBase11 = "urn:ietf:params:netconf:base:1.1"
+)

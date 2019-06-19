@@ -1,4 +1,4 @@
-package netconf
+package client
 
 // The Network Configuration Protocol (NETCONF)
 // provides mechanisms to install, manipulate, and delete the

@@ -1,4 +1,4 @@
-package netconf
+package client
 
 // Defines structs describing netconf configuration.
 
