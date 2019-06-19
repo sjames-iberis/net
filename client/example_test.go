@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/damianoneill/net/netconf/common"
-	"github.com/damianoneill/net/netconf/testserver"
+	"github.com/damianoneill/net/common"
+	"github.com/damianoneill/net/testserver"
 
 	"golang.org/x/crypto/ssh"
 )

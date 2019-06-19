@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	mocks "github.com/damianoneill/net/netconf/mocks"
+	mocks "github.com/damianoneill/net/mocks"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 )

@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/damianoneill/net/netconf/common"
+	"github.com/damianoneill/net/common"
 
-	"github.com/damianoneill/net/netconf/common/codec"
+	"github.com/damianoneill/net/common/codec"
 
 	"github.com/satori/go.uuid"
 

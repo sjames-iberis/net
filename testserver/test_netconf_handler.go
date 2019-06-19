@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/damianoneill/net/netconf/common"
+	"github.com/damianoneill/net/common"
 
-	"github.com/damianoneill/net/netconf/common/codec"
+	"github.com/damianoneill/net/common/codec"
 
 	assert "github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"

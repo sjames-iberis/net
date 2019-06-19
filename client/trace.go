@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/damianoneill/net/netconf/common"
+	"github.com/damianoneill/net/common"
 
 	"github.com/imdario/mergo"
 	"golang.org/x/crypto/ssh"

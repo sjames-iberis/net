@@ -4,9 +4,9 @@ import (
 	"encoding/xml"
 	"io"
 
-	"github.com/damianoneill/net/netconf/common"
+	"github.com/damianoneill/net/common"
 
-	"github.com/damianoneill/net/netconf/common/codec/rfc6242"
+	"github.com/damianoneill/net/common/codec/rfc6242"
 )
 
 // Define encoder and decoder that wrap the standard xml Codec (for XML en/decoding)
